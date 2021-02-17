@@ -147,6 +147,12 @@ func startServer() error {
 	publicAPI.PATCH(routes.AddNamespaceUserURL, apicontext.Handler(routes.AddNamespaceUser))
 	publicAPI.PATCH(routes.RemoveNamespaceUserURL, apicontext.Handler(routes.RemoveNamespaceUser))
 
+	publicAPI.GET(routes.ListTokenURL, apicontext.Handler(routes.ListToken))
+	publicAPI.GET(routes.GetTokenURL, apicontext.Handler(routes.GetToken))
+	publicAPI.POST(routes.CreateTokenURL, apicontext.Handler(routes.CreateToken))
+	publicAPI.DELETE(routes.DeleteTokenURL, apicontext.Handler(routes.DeleteToken))
+	publicAPI.PATCH(routes.UpdateTokenURL, apicontext.Handler(routes.UpdateToken))
+
 	e.Logger.Fatal(e.Start(":8080"))
 
 	return nil

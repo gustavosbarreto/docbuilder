@@ -24,5 +24,6 @@ type Store interface {
 	PublicKeyStore
 	PrivateKeyStore
 	LicenseStore
+	TokenStore
 	GetStats(ctx context.Context) (*models.Stats, error)
 }
