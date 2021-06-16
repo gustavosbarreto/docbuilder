@@ -324,3 +324,42 @@ func (s *Store) UserDelete(ctx context.Context, id string) error {
 
 	return fromMongoError(err)
 }
+
+func (s *Store) UserUpdateCustomer(ctx context.Context, user *models.User, custID string) error {
+	objID, err := primitive.ObjectIDFromHex(user.ID)
+	if err != nil {
+		return err
+	}
+
+	if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": bson.M{"customer.id": custID}}); err != nil {
+		return fromMongoError(err)
+	}
+
+	return nil
+}
+
+func (s *Store) UserUpdatePaymentID(ctx context.Context, user *models.User, paymentID string) error {
+	objID, err := primitive.ObjectIDFromHex(user.ID)
+	if err != nil {
+		return err
+	}
+
+	if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": bson.M{"customer.payment_method_id": paymentID}}); err != nil {
+		return fromMongoError(err)
+	}
+
+	return nil
+}
+
+func (s *Store) UserDeleteCustomer(ctx context.Context, id string) error {
+	objID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	if _, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$unset": bson.M{"customer": 1}}); err != nil {
+		return fromMongoError(err)
+	}
+
+	return nil
+}

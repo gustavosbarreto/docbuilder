@@ -1328,8 +1328,7 @@ func TestUserGetByID(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	_, err = db.Client().Database("test").Collection("users").InsertOne(ctx, bson.M{
-		"_id":      objID,
+	_, err = db.Client().Database("test").Collection("users").InsertOne(ctx, bson.M{"_id": objID,
 		"name":     user.Name,
 		"username": user.Username,
 		"password": user.Password,
@@ -1480,6 +1479,102 @@ func TestUpdateDataUserSecurity(t *testing.T) {
 
 	err = mongostore.NamespaceSetSessionRecord(ctx, false, namespace.TenantID)
 	assert.NoError(t, err)
+}
+
+func TestUserUpdateCustomer(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", ID: "60af83d418d2dc3007cd445c"}
+
+	objID, err := primitive.ObjectIDFromHex(user.ID)
+
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("users").InsertOne(ctx, bson.M{"_id": objID,
+		"name":     user.Name,
+		"username": user.Username,
+		"password": user.Password,
+		"email":    user.Email,
+	})
+
+	assert.NoError(t, err)
+
+	var custID = "cust19x"
+	err = mongostore.UserUpdateCustomer(ctx, &user, custID)
+	assert.NoError(t, err)
+
+	us, _, err := mongostore.UserGetByID(ctx, user.ID, false)
+	assert.NoError(t, err)
+	assert.Equal(t, custID, us.Customer.ID)
+}
+
+func TestUserUpdatePaymentID(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	user := models.User{Name: "name", Username: "username", Password: "password", Email: "email", ID: "60af83d418d2dc3007cd445c"}
+
+	objID, err := primitive.ObjectIDFromHex(user.ID)
+
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("users").InsertOne(ctx, bson.M{"_id": objID,
+		"name":        user.Name,
+		"username":    user.Username,
+		"password":    user.Password,
+		"email":       user.Email,
+		"customer.id": "cus_123x",
+	})
+
+	assert.NoError(t, err)
+
+	var payID = "pm_89x"
+	err = mongostore.UserUpdatePaymentID(ctx, &user, payID)
+	assert.NoError(t, err)
+
+	us, _, err := mongostore.UserGetByID(ctx, user.ID, false)
+	assert.NoError(t, err)
+	assert.Equal(t, payID, us.Customer.PaymentMethodID)
+}
+
+func TestUserDeleteCustomer(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	user := models.User{ID: "60af83d418d2dc3007cd445c", Name: "name", Username: "username", Password: "password", Email: "user@email.com"}
+
+	objID, err := primitive.ObjectIDFromHex(user.ID)
+
+	assert.NoError(t, err)
+
+	_, err = db.Client().Database("test").Collection("users").InsertOne(ctx, bson.M{
+		"_id":      objID,
+		"name":     user.Name,
+		"username": user.Username,
+		"password": user.Password,
+		"email":    user.Email,
+		"customer": bson.M{
+			"id":                "cust_111x",
+			"payment_method_id": "pid_111x",
+		},
+	})
+
+	assert.NoError(t, err)
+
+	us, _, err := mongostore.UserGetByID(ctx, user.ID, false)
+	err = mongostore.UserDeleteCustomer(ctx, user.ID)
+	assert.NoError(t, err)
+
+	us, _, err = mongostore.UserGetByID(ctx, user.ID, false)
+	assert.Empty(t, us.Customer)
+	assert.Equal(t, &user, us)
 }
 
 func TestListUsers(t *testing.T) {
@@ -1805,6 +1900,103 @@ func TestUpdateNamespace(t *testing.T) {
 		MaxDevices: 3,
 	})
 	assert.NoError(t, err)
+}
+
+func TestNamespaceUpdateSubscription(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	ns := &models.Namespace{
+		Name:       "namespace",
+		Owner:      "owner",
+		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+		Members:    []interface{}{"owner"},
+		MaxDevices: -1,
+	}
+	_, err := mongostore.NamespaceCreate(ctx, ns)
+	assert.NoError(t, err)
+
+	subscription := &models.Subscription{
+		ID:               "subc_1111x",
+		CurrentPeriodEnd: time.Date(2021, time.Month(6), 21, 1, 10, 30, 0, time.UTC),
+		PriceID:          "pid_11x",
+	}
+
+	err = mongostore.NamespaceUpdateSubscription(ctx, ns, subscription)
+	assert.NoError(t, err)
+
+	ns, err = mongostore.NamespaceGet(ctx, ns.TenantID)
+	assert.Equal(t, subscription, ns.Subscription)
+}
+
+func TestNamespaceDeleteSubscription(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	ns := &models.Namespace{
+		Name:       "namespace",
+		Owner:      "owner",
+		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+		Members:    []interface{}{"owner"},
+		MaxDevices: -1,
+		Subscription: &models.Subscription{
+			ID:               "subc_1111x",
+			CurrentPeriodEnd: time.Date(2021, time.Month(6), 21, 1, 10, 30, 0, time.UTC),
+			PriceID:          "pid_11x",
+		},
+	}
+	_, err := mongostore.NamespaceCreate(ctx, ns)
+	assert.NoError(t, err)
+
+	err = mongostore.NamespaceDeleteSubscription(ctx, ns.TenantID)
+	assert.NoError(t, err)
+
+	ns, err = mongostore.NamespaceGet(ctx, ns.TenantID)
+	assert.Empty(t, ns.Subscription)
+	assert.Equal(t, &models.Namespace{
+		Name:       "namespace",
+		Owner:      "owner",
+		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+		Members:    []interface{}{"owner"},
+		MaxDevices: -1,
+	}, ns)
+}
+
+func TestNamespaceUpdateDeviceLimit(t *testing.T) {
+	db := dbtest.DBServer{}
+	defer db.Stop()
+
+	ctx := context.TODO()
+	mongostore := NewStore(db.Client().Database("test"), cache.NewNullCache())
+	ns := &models.Namespace{
+		Name:       "namespace",
+		Owner:      "owner",
+		TenantID:   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+		Members:    []interface{}{"owner"},
+		MaxDevices: 3,
+		Subscription: &models.Subscription{
+			ID:               "subc_1111x",
+			CurrentPeriodEnd: time.Date(2021, time.Month(6), 21, 1, 10, 30, 0, time.UTC),
+			PriceID:          "pid_11x",
+		},
+	}
+	_, err := mongostore.NamespaceCreate(ctx, ns)
+	assert.NoError(t, err)
+
+	var newDeviceLimit = 16
+
+	err = mongostore.NamespaceUpdateDeviceLimit(ctx, "sub_id2", newDeviceLimit)
+	assert.Error(t, err)
+
+	err = mongostore.NamespaceUpdateDeviceLimit(ctx, ns.Subscription.ID, newDeviceLimit)
+	assert.NoError(t, err)
+
+	ns, err = mongostore.NamespaceGet(ctx, ns.TenantID)
+	assert.Equal(t, ns.MaxDevices, newDeviceLimit)
 }
 
 func TestRemoveNamespaceUser(t *testing.T) {

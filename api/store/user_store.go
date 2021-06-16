@@ -22,4 +22,7 @@ type UserStore interface {
 	UserDeleteTokens(ctx context.Context, ID string) error
 	UserUpdateAccountStatus(ctx context.Context, ID string) error
 	UserDelete(ctx context.Context, ID string) error
+	UserUpdateCustomer(ctx context.Context, user *models.User, custID string) error
+	UserUpdatePaymentID(ctx context.Context, user *models.User, paymentID string) error
+	UserDeleteCustomer(ctx context.Context, id string) error
 }

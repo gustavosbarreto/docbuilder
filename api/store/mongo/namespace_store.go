@@ -268,3 +268,30 @@ func (s *Store) NamespaceGetSessionRecord(ctx context.Context, tenantID string) 
 
 	return settings.Settings.SessionRecord, nil
 }
+
+func (s *Store) NamespaceUpdateSubscription(ctx context.Context, ns *models.Namespace, subs *models.Subscription) error {
+	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": ns.TenantID}, bson.M{"$set": bson.M{"subscription": subs}}); err != nil {
+		return fromMongoError(err)
+	}
+
+	return nil
+}
+
+func (s *Store) NamespaceDeleteSubscription(ctx context.Context, tenantID string) error {
+	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$unset": bson.M{"subscription": 1}}); err != nil {
+		return fromMongoError(err)
+	}
+	return nil
+}
+
+func (s *Store) NamespaceUpdateDeviceLimit(ctx context.Context, subscriptionID string, newLimit int) error {
+	ns := new(models.Namespace)
+	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"subscription.id": subscriptionID}).Decode(&ns); err != nil {
+		return fromMongoError(err)
+	}
+
+	if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"subscription.id": subscriptionID}, bson.M{"$set": bson.M{"max_devices": newLimit}}); err != nil {
+		return fromMongoError(err)
+	}
+	return nil
+}
