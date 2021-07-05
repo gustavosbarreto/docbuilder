@@ -61,6 +61,14 @@ describe('DeviceDetails', () => {
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
+  it('Compare data with default value', () => {
+    expect(wrapper.vm.uid).toEqual(device.uid);
+    expect(wrapper.vm.hostname).toEqual('localhost');
+    expect(wrapper.vm.hide).toEqual(true);
+    expect(wrapper.vm.device).toEqual(device);
+    expect(wrapper.vm.dialogDelete).toEqual(false);
+    expect(wrapper.vm.dialogError).toEqual(false);
+  });
   Object.keys(device).forEach((field) => {
     it(`Receives the field ${field} of device state from store`, () => {
       expect(wrapper.vm.device[field]).toEqual(device[field]);

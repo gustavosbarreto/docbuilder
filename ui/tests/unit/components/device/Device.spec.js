@@ -50,6 +50,11 @@ describe('Device', () => {
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
+  it('Process data in the computed', () => {
+    expect(wrapper.vm.getNumberPendingDevices).toEqual(pendingDevices);
+    expect(wrapper.vm.hasDevice).toEqual(true);
+    expect(wrapper.vm.showBoxMessage).toEqual(false);
+  });
   it('Compare data with the default and defined value', () => {
     expect(wrapper.vm.search).toEqual('');
 
@@ -64,11 +69,6 @@ describe('Device', () => {
     textInputSearch.element.value = 'ShellHub';
 
     expect(wrapper.find('[data-test="search-text"]').element.value).toEqual('ShellHub');
-  });
-  it('Process data in the computed', () => {
-    expect(wrapper.vm.getNumberPendingDevices).toEqual(pendingDevices);
-  });
-  it('Renders the template with data', () => {
     expect(wrapper.find('[data-test="badge-field"]').vm.$options.propsData.content).toEqual(pendingDevices);
   });
 });

@@ -72,11 +72,12 @@
           <TerminalDialog
             v-if="item.online"
             :uid="item.uid"
+            data-test="terminalDialog-field"
           />
 
           <DeviceDelete
-            data-test="delete-field"
             :uid="item.uid"
+            data-test="delete-field"
             @update="refresh"
           />
         </template>

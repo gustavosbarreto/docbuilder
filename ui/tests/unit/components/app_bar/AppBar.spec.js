@@ -51,6 +51,14 @@ describe('AppBar', () => {
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
+  it('Receive data in props', () => {
+    expect(wrapper.vm.drawer).toEqual(drawer);
+  });
+  it('Process data in the computed', () => {
+    expect(wrapper.vm.isLoggedIn).toEqual(isLoggedIn);
+    expect(wrapper.vm.hasNamespaces).toEqual(numberNamespaces !== 0);
+    expect(wrapper.vm.isMobile).toEqual(isMobile);
+  });
   it('Renders the template with data', async () => {
     expect(wrapper.find('[data-test="Settings"]').exists()).toEqual(true);
     expect(wrapper.find('[data-test="Logout"]').exists()).toEqual(true);

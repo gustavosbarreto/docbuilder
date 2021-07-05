@@ -55,12 +55,13 @@ describe('DeviceAdd', () => {
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
-  it('Renders the template with data', () => {
-    expect(wrapper.find('[data-test="command-field"]').exists()).toBe(true);
-  });
-  it('Proccess computed data in computed', () => {
+  it('Receive data in props', () => {
     expect(wrapper.vm.show).toBe(false);
     expect(wrapper.vm.tenant).toBe('00000000');
+    expect(wrapper.vm.isOwner).toBe(isOwner);
+  });
+  it('Compare data with default value', () => {
+    expect(wrapper.vm.dialog).toEqual(false);
   });
   it('Process data in methods', () => {
     const command = 'curl -sSf "http://localhost/install.sh?tenant_id=00000000" | sh';
@@ -70,5 +71,8 @@ describe('DeviceAdd', () => {
 
     expect(wrapper.vm.command()).toBe(command);
     expect(wrapper.vm.copyCommand).toHaveBeenCalled();
+  });
+  it('Renders the template with data', async () => {
+    expect(wrapper.find('[data-test="command-field"]').exists()).toBe(true);
   });
 });

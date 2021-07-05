@@ -13,6 +13,43 @@ describe('DevicePendingList', () => {
 
   const numberDevices = 4;
 
+  const pagination = {
+    groupBy: [],
+    groupDesc: [],
+    itemsPerPage: 10,
+    multiSort: false,
+    mustSort: false,
+    page: 1,
+    sortBy: [],
+    sortDesc: [],
+  };
+
+  const headers = [
+    {
+      text: 'Hostname',
+      value: 'hostname',
+      align: 'center',
+    },
+    {
+      text: 'Operating System',
+      value: 'info.pretty_name',
+      align: 'center',
+      sortable: false,
+    },
+    {
+      text: 'Request Time',
+      value: 'request_time',
+      align: 'center',
+      sortable: false,
+    },
+    {
+      text: 'Actions',
+      value: 'actions',
+      align: 'center',
+      sortable: false,
+    },
+  ];
+
   const devices = [
     {
       uid: '1234',
@@ -127,6 +164,14 @@ describe('DevicePendingList', () => {
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
+  it('Compare data with default value', () => {
+    expect(wrapper.vm.pagination).toEqual(pagination);
+    expect(wrapper.vm.headers).toEqual(headers);
+  });
+  it('Process data in the computed', () => {
+    expect(wrapper.vm.getListPendingDevices).toEqual(devices);
+    expect(wrapper.vm.getNumberPendingDevices).toEqual(numberDevices);
+  });
   it('Renders the template with data', () => {
     const dt = wrapper.find('[data-test="dataTable-field"]');
     const dataTableProps = dt.vm.$options.propsData;
@@ -134,9 +179,5 @@ describe('DevicePendingList', () => {
     expect(dataTableProps.items).toHaveLength(numberDevices);
     expect(wrapper.find('[data-test="field-accept"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="field-reject"]').exists()).toBe(true);
-  });
-  it('Process data in the computed', () => {
-    expect(wrapper.vm.getListPendingDevices).toEqual(devices);
-    expect(wrapper.vm.getNumberPendingDevices).toEqual(numberDevices);
   });
 });

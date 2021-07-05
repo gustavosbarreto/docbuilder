@@ -12,6 +12,48 @@ describe('DeviceList', () => {
 
   const numberDevices = 2;
 
+  const pagination = {
+    groupBy: [],
+    groupDesc: [],
+    itemsPerPage: 10,
+    multiSort: false,
+    mustSort: false,
+    page: 1,
+    sortBy: [],
+    sortDesc: [],
+  };
+
+  const headers = [
+    {
+      text: 'Online',
+      value: 'online',
+      align: 'center',
+    },
+    {
+      text: 'Hostname',
+      value: 'hostname',
+      align: 'center',
+    },
+    {
+      text: 'Operating System',
+      value: 'info.pretty_name',
+      align: 'center',
+      sortable: false,
+    },
+    {
+      text: 'SSHID',
+      value: 'namespace',
+      align: 'center',
+      sortable: false,
+    },
+    {
+      text: 'Actions',
+      value: 'actions',
+      align: 'center',
+      sortable: false,
+    },
+  ];
+
   const devices = [
     {
       uid: 'a582b47a42d',
@@ -90,15 +132,27 @@ describe('DeviceList', () => {
   it('Renders the component', () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
+  it('Compare data with default value', () => {
+    expect(wrapper.vm.hostname).toEqual('localhost');
+    expect(wrapper.vm.pagination).toEqual(pagination);
+    expect(wrapper.vm.headers).toEqual(headers);
+  });
+  it('Process data in the computed', () => {
+    expect(wrapper.vm.getListDevices).toEqual(devices);
+    expect(wrapper.vm.getNumberDevices).toEqual(numberDevices);
+  });
+  it('Process data in methods', () => {
+    Object.keys(devices).forEach((device) => {
+      const address = `${device.namespace}.${device.name}@localhost`;
+      expect(wrapper.vm.address(device)).toEqual(address);
+    });
+  });
   it('Renders the template with data', () => {
     const dt = wrapper.find('[data-test="dataTable-field"]');
     const dataTableProps = dt.vm.$options.propsData;
 
     expect(dataTableProps.items).toHaveLength(numberDevices);
     expect(wrapper.find('[data-test="delete-field"]').exists()).toBe(true);
-  });
-  it('Process data in the computed', () => {
-    expect(wrapper.vm.getListDevices).toEqual(devices);
-    expect(wrapper.vm.getNumberDevices).toEqual(numberDevices);
+    expect(wrapper.find('[data-test="terminalDialog-field"]').exists()).toBe(true);
   });
 });
