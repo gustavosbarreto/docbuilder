@@ -52,6 +52,17 @@ func AuthRequest(c apicontext.Context) error {
 		c.Response().Header().Set(api.DeviceUIDHeader, claims.UID)
 
 		return nil
+	case "apiToken":
+		var claims models.APITokenAuthClaims
+
+		if err := DecodeMap(rawClaims, &claims); err != nil {
+			return err
+		}
+
+		c.Response().Header().Set("X-ID", claims.ID)
+		c.Response().Header().Set("X-Tenant-ID", claims.TenantID)
+
+		return nil
 	}
 
 	return echo.ErrUnauthorized
